@@ -25,11 +25,16 @@ const bannerUpload = multer({
 });
 
 // ── MAIL ──
-const { GMAIL_USER, GMAIL_PASS } = require('./config');
-const mailer = nodemailer.createTransport({
-  service: 'gmail',
-  auth: { user: GMAIL_USER, pass: GMAIL_PASS }
-});
+const GMAIL_USER = process.env.GMAIL_USER;
+const GMAIL_PASS = process.env.GMAIL_PASS;
+const mailer = (GMAIL_USER && GMAIL_PASS)
+  ? nodemailer.createTransport({ service: 'gmail', auth: { user: GMAIL_USER, pass: GMAIL_PASS } })
+  : null;
+
+async function sendMail(opts) {
+  if (!mailer) { console.warn('Email not configured — skipping send to', opts.to); return; }
+  return mailer.sendMail(opts);
+}
 
 // ── APP ──
 const app    = express();
@@ -194,7 +199,7 @@ app.post('/api/register', async (req, res) => {
         code, expires: Date.now() + 15 * 60 * 1000
       });
       try {
-        await mailer.sendMail({
+        await sendMail({
           from: `"Bonita" <${GMAIL_USER}>`, to: email,
           subject: 'Подтверждение регистрации — Bonita',
           text: `Ваш код подтверждения: ${code}\n\nКод действителен 15 минут.`,
@@ -260,7 +265,7 @@ app.post('/api/forgot-password', (req, res) => {
     const code = String(Math.floor(1000 + Math.random() * 9000));
     resetCodes.set(email, { code, expires: Date.now() + 15 * 60 * 1000 });
     try {
-      await mailer.sendMail({
+      await sendMail({
         from: `"Bonita" <${GMAIL_USER}>`, to: email,
         subject: 'Код восстановления пароля — Bonita',
         text: `Ваш код для сброса пароля: ${code}\n\nКод действителен 15 минут.`,
