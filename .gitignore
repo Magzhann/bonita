@@ -1,0 +1,25 @@
+# Dependencies
+node_modules/
+
+# Database
+bonita.db
+
+# Secrets & config
+config.js
+
+# Banner settings (local override)
+banner-settings.json
+
+# Uploads (product/banner photos)
+public/uploads/
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Environment
+.env

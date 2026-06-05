@@ -1,0 +1,1196 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bonita — Админ панель</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --bg:     #0a0905;
+      --bg2:    #111009;
+      --bg3:    #181510;
+      --gold:   #c9a84c;
+      --gold2:  #e8d5a3;
+      --text:   #f5f0e8;
+      --muted:  #8a8070;
+      --border: rgba(201,168,76,0.15);
+      --border2:rgba(201,168,76,0.3);
+      --green:  #4caf7d;
+      --red:    #c94c4c;
+      --sidebar:220px;
+    }
+    html, body { height: 100%; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Jost', sans-serif;
+      font-weight: 300;
+      display: flex;
+    }
+
+    /* ── SIDEBAR ── */
+    .sidebar {
+      width: var(--sidebar);
+      min-height: 100vh;
+      background: var(--bg2);
+      border-right: 0.5px solid var(--border);
+      display: flex; flex-direction: column;
+      position: fixed; left: 0; top: 0; bottom: 0;
+      z-index: 100;
+    }
+    .sidebar-logo {
+      padding: 1.5rem;
+      border-bottom: 0.5px solid var(--border);
+    }
+    .sidebar-logo-text {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 20px; color: var(--gold); letter-spacing: 0.1em;
+    }
+    .sidebar-sub {
+      font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase;
+      color: var(--muted); margin-top: 2px;
+    }
+    .sidebar-nav { flex: 1; padding: 1rem 0; }
+    .nav-section {
+      font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--muted); padding: 1rem 1.25rem 0.5rem;
+    }
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 0.75rem 1.25rem; cursor: pointer;
+      font-size: 13px; color: var(--muted);
+      transition: all 0.2s; border-left: 2px solid transparent;
+      text-decoration: none;
+    }
+    .nav-item:hover { color: var(--text); background: rgba(201,168,76,0.04); }
+    .nav-item.active { color: var(--gold); border-left-color: var(--gold); background: rgba(201,168,76,0.06); }
+    .nav-icon { font-size: 16px; width: 18px; text-align: center; }
+    .sidebar-footer {
+      padding: 1.25rem;
+      border-top: 0.5px solid var(--border);
+      font-size: 11px; color: var(--muted);
+    }
+
+    /* ── MAIN ── */
+    .main {
+      margin-left: var(--sidebar);
+      flex: 1; min-height: 100vh;
+      display: flex; flex-direction: column;
+    }
+    .topbar {
+      padding: 1rem 2rem;
+      border-bottom: 0.5px solid var(--border);
+      display: flex; justify-content: space-between; align-items: center;
+      background: var(--bg2); position: sticky; top: 0; z-index: 50;
+    }
+    .topbar-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 22px; font-weight: 300;
+    }
+    .topbar-right { display: flex; gap: 1rem; align-items: center; }
+    .btn-primary {
+      padding: 8px 20px; background: var(--gold);
+      color: #0a0905; font-family: 'Jost', sans-serif;
+      font-size: 11px; font-weight: 500; letter-spacing: 0.12em;
+      text-transform: uppercase; border: none; cursor: pointer;
+      transition: background 0.3s;
+    }
+    .btn-primary:hover { background: var(--gold2); }
+    .btn-outline {
+      padding: 8px 20px; background: transparent;
+      color: var(--muted); font-family: 'Jost', sans-serif;
+      font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase;
+      border: 0.5px solid var(--border); cursor: pointer; transition: all 0.3s;
+    }
+    .btn-outline:hover { border-color: var(--gold); color: var(--gold); }
+
+    .content { padding: 2rem; flex: 1; }
+
+    /* ── STATS ── */
+    .stats-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px;
+      background: var(--border); margin-bottom: 2rem;
+    }
+    .stat-card {
+      background: var(--bg2); padding: 1.5rem;
+    }
+    .stat-label {
+      font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--muted); margin-bottom: 0.5rem;
+    }
+    .stat-value {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 32px; font-weight: 300; color: var(--text);
+    }
+    .stat-value.gold { color: var(--gold); }
+    .stat-sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+    /* ── SECTION ── */
+    .section-head {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 1.25rem;
+    }
+    .section-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 22px; font-weight: 300;
+    }
+
+    /* ── TABLE ── */
+    .table-wrap {
+      background: var(--bg2); border: 0.5px solid var(--border);
+      margin-bottom: 2rem; overflow-x: auto;
+    }
+    table { width: 100%; border-collapse: collapse; }
+    thead tr { border-bottom: 0.5px solid var(--border); }
+    th {
+      padding: 0.75rem 1rem; text-align: left;
+      font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--muted); font-weight: 400;
+    }
+    td {
+      padding: 1rem; font-size: 13px; color: var(--text);
+      border-bottom: 0.5px solid var(--border);
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(201,168,76,0.02); }
+
+    /* ── TOGGLE ── */
+    .toggle {
+      position: relative; display: inline-block;
+      width: 40px; height: 22px; cursor: pointer;
+    }
+    .toggle input { opacity: 0; width: 0; height: 0; }
+    .toggle-slider {
+      position: absolute; inset: 0;
+      background: var(--bg3); border: 0.5px solid var(--border);
+      transition: all 0.3s;
+    }
+    .toggle-slider::before {
+      content: ''; position: absolute;
+      width: 14px; height: 14px;
+      left: 3px; top: 3px;
+      background: var(--muted); transition: all 0.3s;
+    }
+    .toggle input:checked + .toggle-slider { background: rgba(76,175,125,0.15); border-color: var(--green); }
+    .toggle input:checked + .toggle-slider::before { background: var(--green); transform: translateX(18px); }
+
+    /* ── STATUS BADGE ── */
+    .badge {
+      display: inline-block; padding: 3px 10px;
+      font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
+    }
+    .badge-green { background: rgba(76,175,125,0.12); color: var(--green); }
+    .badge-red   { background: rgba(201,76,76,0.12);  color: var(--red); }
+    .badge-gold  { background: rgba(201,168,76,0.12); color: var(--gold); }
+    .badge-gray  { background: rgba(138,128,112,0.12); color: var(--muted); }
+
+    /* ── ACTION BTNS ── */
+    .action-btn {
+      background: none; border: 0.5px solid var(--border);
+      color: var(--muted); padding: 5px 12px;
+      font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
+      cursor: pointer; font-family: 'Jost', sans-serif; transition: all 0.3s;
+      margin-right: 4px;
+    }
+    .action-btn:hover { border-color: var(--gold); color: var(--gold); }
+    .action-btn.danger:hover { border-color: var(--red); color: var(--red); }
+
+    /* ── MODAL ── */
+    .modal-overlay {
+      position: fixed; inset: 0; z-index: 500;
+      background: rgba(0,0,0,0.85); backdrop-filter: blur(8px);
+      display: none; align-items: center; justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: var(--bg2); border: 0.5px solid var(--border2);
+      padding: 2.5rem; width: 100%; max-width: 520px;
+      position: relative; max-height: 90vh; overflow-y: auto;
+    }
+    .modal-close {
+      position: absolute; top: 1rem; right: 1rem;
+      background: none; border: none; color: var(--muted);
+      cursor: pointer; font-size: 20px;
+    }
+    .modal-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 26px; font-weight: 300; margin-bottom: 1.5rem;
+    }
+    .form-group { margin-bottom: 1rem; }
+    .form-label {
+      font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase;
+      color: var(--muted); display: block; margin-bottom: 6px;
+    }
+    .form-input, .form-select, .form-textarea {
+      width: 100%; padding: 10px 12px;
+      background: var(--bg3); border: 0.5px solid var(--border);
+      color: var(--text); font-family: 'Jost', sans-serif; font-size: 14px;
+      outline: none; transition: border-color 0.3s;
+    }
+    .form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--gold); }
+    .form-select option { background: var(--bg3); }
+    .form-textarea { resize: vertical; min-height: 80px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .form-row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }
+    .form-submit {
+      width: 100%; margin-top: 1.5rem; padding: 12px;
+      background: var(--gold); color: #0a0905;
+      font-family: 'Jost', sans-serif; font-size: 11px;
+      font-weight: 500; letter-spacing: 0.15em; text-transform: uppercase;
+      border: none; cursor: pointer; transition: background 0.3s;
+    }
+    .form-submit:hover { background: var(--gold2); }
+
+    /* ── PAGES ── */
+    .page { display: none; }
+    .page.active { display: block; }
+
+    /* ── BANNERS ── */
+    .banner-upload-area {
+      border: 1.5px dashed var(--border2); padding: 2.5rem;
+      text-align: center; cursor: pointer; transition: border-color 0.3s;
+      margin-bottom: 2rem;
+    }
+    .banner-upload-area:hover { border-color: var(--gold); }
+    .banner-upload-area input { display: none; }
+    .banner-upload-label {
+      font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase;
+      color: var(--muted); display: block; cursor: pointer;
+    }
+    .banner-upload-label span { color: var(--gold); }
+    .banners-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 1px; background: var(--border);
+    }
+    .banner-thumb {
+      position: relative; aspect-ratio: 16/9;
+      background: var(--bg3); overflow: hidden;
+    }
+    .banner-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .banner-thumb-overlay {
+      position: absolute; inset: 0; background: rgba(0,0,0,0.6);
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; transition: opacity 0.2s;
+    }
+    .banner-thumb:hover .banner-thumb-overlay { opacity: 1; }
+    .banner-delete-btn {
+      background: #c94c4c; border: none; color: #fff;
+      padding: 7px 16px; font-size: 10px; letter-spacing: 0.1em;
+      text-transform: uppercase; cursor: pointer;
+      font-family: 'Jost', sans-serif; transition: background 0.2s;
+    }
+    .banner-delete-btn:hover { background: #a33; }
+    .banner-empty { color: var(--muted); font-size: 13px; padding: 2rem 0; }
+
+    /* ── ORDERS CARDS ── */
+    .orders-list { display: flex; flex-direction: column; gap: 1px; background: var(--border); }
+    .order-card { background: var(--bg2); }
+    .order-card-head {
+      display: grid;
+      grid-template-columns: 48px 1fr 90px 110px 100px 80px 36px;
+      align-items: center; gap: 0.5rem;
+      padding: 0.9rem 1.25rem; cursor: pointer;
+      transition: background 0.2s;
+    }
+    .order-card-head:hover { background: rgba(201,168,76,0.03); }
+    .order-card-head.open { background: rgba(201,168,76,0.05); border-bottom: 0.5px solid var(--border); }
+    .order-num { font-family:'Cormorant Garamond',serif; font-size:18px; color:var(--gold); }
+    .order-client { min-width: 0; }
+    .order-client-name { font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .order-client-phone { font-size:11px; color:var(--muted); margin-top:1px; }
+    .order-city { font-size:12px; color:var(--muted); }
+    .order-amount { font-family:'Cormorant Garamond',serif; font-size:17px; text-align:right; }
+    .order-date { font-size:11px; color:var(--muted); text-align:right; }
+    .order-chevron { color:var(--muted); font-size:11px; text-align:center; transition: transform 0.25s; }
+    .order-card-head.open .order-chevron { transform: rotate(180deg); }
+
+    .order-detail {
+      display: none; padding: 1.25rem 1.5rem 1.5rem;
+      background: var(--bg3);
+    }
+    .order-detail.open { display: block; }
+    .order-detail-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;
+      margin-bottom: 1.25rem;
+    }
+    .order-detail-section-title {
+      font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--muted); margin-bottom: 0.5rem;
+    }
+    .order-detail-val { font-size:13px; line-height:1.5; }
+    .order-items-table { width:100%; border-collapse:collapse; margin-top:0.5rem; }
+    .order-items-table th {
+      font-size:9px; letter-spacing:0.15em; text-transform:uppercase;
+      color:var(--muted); font-weight:400; text-align:left;
+      padding:5px 8px; border-bottom:0.5px solid var(--border);
+    }
+    .order-items-table td {
+      font-size:12px; padding:7px 8px;
+      border-bottom:0.5px solid var(--border); color:var(--text);
+    }
+    .order-items-table tr:last-child td { border-bottom:none; }
+    .order-status-row {
+      display:flex; align-items:center; gap:0.75rem; margin-top:1.25rem;
+      padding-top:1rem; border-top:0.5px solid var(--border);
+    }
+    .order-status-label { font-size:11px; color:var(--muted); }
+    .order-status-select {
+      background:var(--bg2); border:0.5px solid var(--border);
+      color:var(--text); font-family:'Jost',sans-serif; font-size:12px;
+      padding:6px 10px; outline:none; cursor:pointer;
+    }
+    .order-status-select:focus { border-color:var(--gold); }
+    .order-status-btn {
+      padding:6px 16px; background:var(--gold); color:#0a0905;
+      font-family:'Jost',sans-serif; font-size:10px; font-weight:500;
+      letter-spacing:0.12em; text-transform:uppercase;
+      border:none; cursor:pointer; transition:background 0.2s;
+    }
+    .order-status-btn:hover { background:var(--gold2); }
+  </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="sidebar-logo-text">BONITA</div>
+    <div class="sidebar-sub">Панель управления</div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section">Основное</div>
+    <a class="nav-item active" onclick="showPage('dashboard', this)">
+      <span class="nav-icon">◈</span> Обзор
+    </a>
+    <a class="nav-item" onclick="showPage('products', this)">
+      <span class="nav-icon">◎</span> Товары
+    </a>
+    <a class="nav-item" onclick="showPage('orders', this)">
+      <span class="nav-icon">◻</span> Заказы
+    </a>
+    <a class="nav-item" onclick="showPage('clients', this)">
+      <span class="nav-icon">◯</span> Клиенты
+    </a>
+    <div class="nav-section">Настройки</div>
+    <a class="nav-item" onclick="showPage('banners', this)">
+      <span class="nav-icon">◧</span> Баннеры
+    </a>
+    <a class="nav-item" onclick="showPage('settings', this)">
+      <span class="nav-icon">⊙</span> Настройки
+    </a>
+    <a class="nav-item" href="bonita.html" style="margin-top:auto;">
+      <span class="nav-icon">↗</span> Открыть сайт
+    </a>
+  </nav>
+  <div class="sidebar-footer" style="display:flex;justify-content:space-between;align-items:center;">Magzhan · Админ<button onclick="logout()" style="background:none;border:0.5px solid var(--border);color:var(--muted);padding:4px 10px;font-size:10px;cursor:pointer;font-family:Jost,sans-serif;">Выйти</button></div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="topbar-title" id="page-title">Обзор</div>
+    <div class="topbar-right">
+      <button class="btn-outline" id="topbar-action-secondary" style="display:none"></button>
+      <button class="btn-primary" id="topbar-action" onclick="topbarAction()">+ Добавить товар</button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- ── DASHBOARD ── -->
+    <div class="page active" id="page-dashboard">
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-label">Заказов сегодня</div>
+          <div class="stat-value gold">0</div>
+          <div class="stat-sub">Ожидают обработки</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Всего клиентов</div>
+          <div class="stat-value">0</div>
+          <div class="stat-sub">Зарегистрированных</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Активных товаров</div>
+          <div class="stat-value" id="stat-active-products">4</div>
+          <div class="stat-sub">В продаже</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Выручка</div>
+          <div class="stat-value gold">0 ₸</div>
+          <div class="stat-sub">За все время</div>
+        </div>
+      </div>
+
+      <div class="section-head">
+        <div class="section-title">Последние заказы</div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>№ Заказа</th><th>Клиент</th><th>Город</th><th>Сумма</th><th>Статус</th><th>Дата</th>
+          </tr></thead>
+          <tbody>
+            <tr><td colspan="6" style="text-align:center;color:var(--muted);padding:2rem;">Заказов пока нет</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── PRODUCTS ── -->
+    <div class="page" id="page-products">
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>Товар</th><th>Бренд</th><th>Категория</th><th>Упаковка</th><th>Цена</th><th>Продажа</th><th>Действия</th>
+          </tr></thead>
+          <tbody id="products-tbody">
+            <tr>
+              <td><strong>Тарелка обеденная</strong><br><span style="font-size:11px;color:var(--muted);">Белая керамика, матовая</span></td>
+              <td>BONITA</td>
+              <td>Керамика</td>
+              <td>1×48 шт</td>
+              <td>450 ₸</td>
+              <td>
+                <label class="toggle">
+                  <input type="checkbox" checked onchange="toggleProduct(this, 'Тарелка обеденная')">
+                  <span class="toggle-slider"></span>
+                </label>
+              </td>
+              <td>
+                <button class="action-btn" onclick="editProduct('Тарелка обеденная')">Изменить</button>
+                <button class="action-btn danger" onclick="deleteProduct(this, 'Тарелка обеденная')">Удалить</button>
+              </td>
+            </tr>
+            <tr>
+              <td><strong>Пиала чайная</strong><br><span style="font-size:11px;color:var(--muted);">Рельефный узор, айвори</span></td>
+              <td>BONITA</td>
+              <td>Керамика</td>
+              <td>1×36 шт</td>
+              <td>320 ₸</td>
+              <td>
+                <label class="toggle">
+                  <input type="checkbox" checked onchange="toggleProduct(this, 'Пиала чайная')">
+                  <span class="toggle-slider"></span>
+                </label>
+              </td>
+              <td>
+                <button class="action-btn" onclick="editProduct('Пиала чайная')">Изменить</button>
+                <button class="action-btn danger" onclick="deleteProduct(this, 'Пиала чайная')">Удалить</button>
+              </td>
+            </tr>
+            <tr>
+              <td><strong>Набор бокалов</strong><br><span style="font-size:11px;color:var(--muted);">6 предметов, боросиликат</span></td>
+              <td>VOCO HOME</td>
+              <td>Стекло</td>
+              <td>1 набор</td>
+              <td>2 800 ₸</td>
+              <td>
+                <label class="toggle">
+                  <input type="checkbox" checked onchange="toggleProduct(this, 'Набор бокалов')">
+                  <span class="toggle-slider"></span>
+                </label>
+              </td>
+              <td>
+                <button class="action-btn" onclick="editProduct('Набор бокалов')">Изменить</button>
+                <button class="action-btn danger" onclick="deleteProduct(this, 'Набор бокалов')">Удалить</button>
+              </td>
+            </tr>
+            <tr>
+              <td><strong>Салатник глубокий</strong><br><span style="font-size:11px;color:var(--muted);">Матовое покрытие, синий</span></td>
+              <td>BONITA</td>
+              <td>Керамика</td>
+              <td>1×24 шт</td>
+              <td>680 ₸</td>
+              <td>
+                <label class="toggle">
+                  <input type="checkbox" checked onchange="toggleProduct(this, 'Салатник глубокий')">
+                  <span class="toggle-slider"></span>
+                </label>
+              </td>
+              <td>
+                <button class="action-btn" onclick="editProduct('Салатник глубокий')">Изменить</button>
+                <button class="action-btn danger" onclick="deleteProduct(this, 'Салатник глубокий')">Удалить</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── ORDERS ── -->
+    <div class="page" id="page-orders">
+      <div id="orders-list-wrap">
+        <div style="text-align:center;color:var(--muted);padding:3rem;">Загрузка...</div>
+      </div>
+    </div>
+
+    <!-- ── CLIENTS ── -->
+    <div class="page" id="page-clients">
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>Имя</th><th>Email / Телефон</th><th>Город</th><th>Заказов</th><th>Сумма</th><th>Дата регистрации</th><th></th>
+          </tr></thead>
+          <tbody>
+            <tr><td colspan="6" style="text-align:center;color:var(--muted);padding:2rem;">Клиентов пока нет</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── SETTINGS ── -->
+    <div class="page" id="page-settings">
+      <div style="max-width:480px;">
+        <div class="section-title" style="margin-bottom:1.5rem;">Контакты</div>
+        <div class="form-group">
+          <label class="form-label">WhatsApp менеджера</label>
+          <input type="text" class="form-input" placeholder="+7 XXX XXX XX XX" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email для уведомлений</label>
+          <input type="email" class="form-input" placeholder="admin@bonita.kz" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Kaspi номер для оплаты</label>
+          <input type="text" class="form-input" placeholder="+7 XXX XXX XX XX" />
+        </div>
+        <div class="section-title" style="margin-bottom:1.5rem;margin-top:2rem;">Минимальный заказ</div>
+        <div class="form-group">
+          <label class="form-label">Минимальная сумма заказа (₸)</label>
+          <input type="number" class="form-input" placeholder="0" />
+        </div>
+        <button class="form-submit" style="margin-top:1rem;" onclick="alert('Сохранено!')">Сохранить настройки</button>
+      </div>
+    </div>
+
+    <!-- ── BANNERS ── -->
+    <div class="page" id="page-banners">
+
+      <!-- Interval setting -->
+      <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem;padding:1.25rem;background:var(--bg2);border:0.5px solid var(--border);">
+        <label class="form-label" style="margin:0;white-space:nowrap;">Интервал (секунды):</label>
+        <input type="number" id="banner-interval" class="form-input" min="0" step="1"
+          style="width:90px;padding:7px 10px;" placeholder="3" />
+        <button class="btn-primary" onclick="saveBannerSettings()" style="white-space:nowrap;">Сохранить</button>
+        <span id="banner-settings-status" style="font-size:12px;color:var(--gold);"></span>
+        <span style="font-size:11px;color:var(--muted);margin-left:auto;">0 = без ротации, показывать только первое фото</span>
+      </div>
+
+      <div class="banner-upload-area" onclick="document.getElementById('banner-file-input').click()">
+        <input type="file" id="banner-file-input" accept=".jpg,.jpeg,.png,.webp" multiple onchange="uploadBanners(this.files)">
+        <div style="font-size:28px;color:var(--muted);margin-bottom:0.75rem;">↑</div>
+        <label class="banner-upload-label">Нажмите чтобы выбрать фото <span>(JPG, PNG, WebP — до 10 МБ)</span></label>
+        <div id="banner-upload-status" style="font-size:12px;color:var(--gold);margin-top:0.5rem;"></div>
+      </div>
+      <div id="banners-grid" class="banners-grid"></div>
+    </div>
+
+  </div>
+</main>
+
+<!-- MODAL — Добавить/Изменить товар -->
+<div class="modal-overlay" id="modal-product" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">×</button>
+    <div class="modal-title" id="modal-product-title">Добавить товар</div>
+
+    <div class="form-group">
+      <label class="form-label">Название товара</label>
+      <input type="text" class="form-input" id="p-name" />
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Бренд</label>
+        <select class="form-select" id="p-brand">
+          <option>BONITA</option>
+          <option>VOCO HOME</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Категория</label>
+        <select class="form-select" id="p-category">
+          <option>Керамика</option>
+          <option>Стекло</option>
+          <option>Наборы</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Описание</label>
+      <textarea class="form-textarea" id="p-desc"></textarea>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Цена за штуку (₸)</label>
+        <input type="number" class="form-input" id="p-price" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Тип упаковки</label>
+        <select class="form-select" id="p-type" onchange="togglePackType()">
+          <option value="box">Коробками (X×N шт)</option>
+          <option value="set">Набор (1 шт)</option>
+        </select>
+      </div>
+    </div>
+    <div id="pack-box-fields">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Штук в коробке</label>
+          <input type="number" class="form-input" id="p-qty" placeholder="48" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Цена коробки (₸)</label>
+          <input type="number" class="form-input" id="p-box-price" placeholder="300" />
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:1rem;">
+      <label class="form-label" style="margin-bottom:0.75rem;display:block;">Скидки по количеству коробок</label>
+      <div id="discounts-list">
+        <div class="form-row3 discount-row-input" style="margin-bottom:8px;">
+          <input type="number" class="form-input" placeholder="Коробок от" />
+          <input type="number" class="form-input" placeholder="Скидка %" />
+          <button type="button" class="action-btn danger" onclick="this.closest('.discount-row-input').remove()">✕</button>
+        </div>
+      </div>
+      <button type="button" class="btn-outline" style="margin-top:8px;padding:6px 14px;font-size:10px;" onclick="addDiscountRow()">+ Добавить скидку</button>
+    </div>
+
+    <div class="form-group" style="margin-top:1rem;">
+      <label class="form-label">Фото товара</label>
+      <input type="file" class="form-input" id="p-photo" accept="image/*" />
+    </div>
+
+    <div style="display:flex;align-items:center;gap:12px;margin-top:1rem;">
+      <label class="form-label" style="margin:0;">В продаже</label>
+      <label class="toggle">
+        <input type="checkbox" id="p-active" checked>
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+
+    <input type="hidden" id="p-editing-id"><button class="form-submit" onclick="saveProduct()">Сохранить товар</button>
+  </div>
+</div>
+
+<script>
+  let adminToken = localStorage.getItem('adminToken');
+  let currentPage = 'dashboard';
+
+  // Check auth on load
+  window.addEventListener('DOMContentLoaded', () => {
+    if (!adminToken) {
+      showLoginModal();
+    } else {
+      loadDashboard();
+      loadProducts();
+    }
+  });
+
+  function showLoginModal() {
+    const overlay = document.createElement('div');
+    overlay.id = 'login-overlay';
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.95);display:flex;align-items:center;justify-content:center;';
+    overlay.innerHTML = `
+      <div style="background:var(--bg2);border:0.5px solid var(--border2);padding:2.5rem;width:360px;">
+        <div style="font-family:Cormorant Garamond,serif;font-size:26px;font-weight:300;margin-bottom:0.5rem;">Вход в админку</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:1.5rem;">BONITA · Панель управления</div>
+        <div style="margin-bottom:1rem;">
+          <label style="font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px;">Пароль</label>
+          <input type="password" id="admin-pass" style="width:100%;padding:10px 12px;background:var(--bg3);border:0.5px solid var(--border);color:var(--text);font-size:14px;outline:none;" placeholder="Введите пароль" />
+        </div>
+        <div id="login-error" style="color:var(--red);font-size:12px;margin-bottom:0.5rem;display:none;">Неверный пароль</div>
+        <button onclick="adminLogin()" style="width:100%;padding:12px;background:var(--gold);color:#0a0905;font-size:11px;font-weight:500;letter-spacing:0.15em;text-transform:uppercase;border:none;cursor:pointer;">Войти</button>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+    document.getElementById('admin-pass').addEventListener('keydown', e => { if(e.key==='Enter') adminLogin(); });
+  }
+
+  function logout() { localStorage.removeItem("adminToken"); location.reload(); }
+  async function adminLogin() {
+    const password = document.getElementById('admin-pass').value;
+    try {
+      const res = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({password})
+      });
+      const data = await res.json();
+      if (res.ok) {
+        adminToken = data.token;
+        localStorage.setItem('adminToken', adminToken);
+        document.getElementById('login-overlay').remove();
+        loadDashboard();
+        loadProducts();
+      } else {
+        document.getElementById('login-error').style.display = 'block';
+        document.getElementById('login-error').textContent = data.error;
+      }
+    } catch(e) {
+      alert('Ошибка подключения к серверу');
+    }
+  }
+
+  function authHeaders() {
+    return {'Content-Type':'application/json', 'Authorization':'Bearer ' + adminToken};
+  }
+
+  // Load products from API
+  async function loadProducts() {
+    try {
+      const res = await fetch('/api/products');
+      const products = await res.json();
+      renderProductsTable(products);
+      document.getElementById('stat-active-products').textContent = products.filter(p => p.active).length;
+    } catch(e) {
+      console.error(e);
+    }
+  }
+
+  function renderProductsTable(products) {
+    const tbody = document.getElementById('products-tbody');
+    tbody.innerHTML = '';
+    products.forEach(p => {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td><strong>${p.name}</strong><br><span style="font-size:11px;color:var(--muted);">${p.description||''}</span></td>
+        <td>${p.brand}</td>
+        <td>${p.category}</td>
+        <td>${p.pack_type==='set' ? '1 набор' : '1×'+p.pack_qty+' шт'}</td>
+        <td>${p.price.toLocaleString()} ₸</td>
+        <td>
+          <label class="toggle">
+            <input type="checkbox" ${p.active?'checked':''} onchange="toggleProduct(${p.id}, this.checked)">
+            <span class="toggle-slider"></span>
+          </label>
+        </td>
+        <td>
+          <button class="action-btn" onclick="editProduct(${p.id})">Изменить</button>
+          <button class="action-btn danger" onclick="deleteProduct(${p.id}, '${p.name}', this)">Удалить</button>
+        </td>
+      `;
+      tbody.appendChild(row);
+    });
+  }
+
+  async function toggleProduct(id, active) {
+    try {
+      await fetch('/api/products/'+id+'/toggle', {
+        method: 'PATCH',
+        headers: authHeaders(),
+        body: JSON.stringify({active})
+      });
+      loadProducts();
+    } catch(e) {
+      alert('Ошибка: ' + e.message);
+    }
+  }
+
+  async function deleteProduct(id, name, btn) {
+    if (!confirm('Удалить товар "' + name + '"?')) return;
+    try {
+      await fetch('/api/products/'+id, {method:'DELETE', headers: authHeaders()});
+      loadProducts();
+    } catch(e) {
+      alert('Ошибка: ' + e.message);
+    }
+  }
+
+  async function editProduct(id) {
+    const res = await fetch('/api/products/'+id);
+    const p = await res.json();
+    document.getElementById('modal-product-title').textContent = 'Изменить товар';
+    document.getElementById('p-name').value = p.name;
+    document.getElementById('p-brand').value = p.brand;
+    document.getElementById('p-category').value = p.category;
+    document.getElementById('p-desc').value = p.description||'';
+    document.getElementById('p-price').value = p.price;
+    document.getElementById('p-qty').value = p.pack_qty;
+    document.getElementById('p-active').checked = !!p.active;
+    document.getElementById('p-type').value = p.pack_type||'box';
+    
+    // Load discounts
+    const list = document.getElementById('discounts-list');
+    list.innerHTML = '';
+    (p.discounts||[]).forEach(d => {
+      const div = document.createElement('div');
+      div.className = 'form-row3 discount-row-input';
+      div.style.marginBottom = '8px';
+      div.innerHTML = `<input type="number" class="form-input" value="${d.from}" placeholder="Коробок от"><input type="number" class="form-input" value="${d.percent}" placeholder="Скидка %"><button type="button" class="action-btn danger" onclick="this.closest('.discount-row-input').remove()">✕</button>`;
+      list.appendChild(div);
+    });
+
+    document.getElementById('p-editing-id').value = id;
+    document.getElementById('modal-product').classList.add('open');
+  }
+
+  async function loadDashboard() {
+    try {
+      const [ordersRes, clientsRes, productsRes] = await Promise.all([
+        fetch('/api/orders', {headers: authHeaders()}),
+        fetch('/api/clients', {headers: authHeaders()}),
+        fetch('/api/products')
+      ]);
+      if (ordersRes.ok) {
+        const orders = await ordersRes.json();
+        renderOrdersTable(orders);
+        document.querySelector('.stat-value.gold').textContent = orders.filter(o=>o.status==='new').length;
+        const total = orders.reduce((s,o)=>s+o.total,0);
+        document.querySelectorAll('.stat-value.gold')[1] && (document.querySelectorAll('.stat-value.gold')[1].textContent = total.toLocaleString()+' ₸');
+      }
+      if (clientsRes.ok) {
+        const clients = await clientsRes.json();
+        renderClientsTable(clients);
+        document.querySelectorAll('.stat-value')[1].textContent = clients.length;
+      }
+    } catch(e) { console.error(e); }
+  }
+
+  function statusLabel(s) {
+    return s === 'new' ? 'Новый' : s === 'paid' ? 'Оплачен' : 'Выполнен';
+  }
+  function statusBadgeClass(s) {
+    return s === 'new' ? 'badge-gold' : s === 'paid' ? 'badge-green' : 'badge-gray';
+  }
+
+  function fmtDt(str) {
+    const d = new Date(str);
+    return d.toLocaleDateString('ru-RU', {day:'2-digit',month:'2-digit',year:'numeric'})
+      + ' в ' + d.toLocaleTimeString('ru-RU', {hour:'2-digit',minute:'2-digit'});
+  }
+
+  function renderOrdersTable(orders) {
+    // Dashboard preview (last 10, compact)
+    const dashTbody = document.querySelector('#page-dashboard tbody');
+    if (dashTbody) {
+      if (!orders.length) {
+        dashTbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:2rem;">Заказов пока нет</td></tr>';
+      } else {
+        dashTbody.innerHTML = orders.slice(0, 10).map(o => `
+          <tr>
+            <td>#${o.id}</td>
+            <td>${o.name||''} ${o.surname||''}</td>
+            <td>${o.city||'—'}</td>
+            <td>${o.total.toLocaleString()} ₸</td>
+            <td><span class="badge ${statusBadgeClass(o.status)}">${statusLabel(o.status)}</span></td>
+            <td>${fmtDt(o.created_at)}</td>
+          </tr>`).join('');
+      }
+    }
+
+    // Orders page — expandable cards
+    const wrap = document.getElementById('orders-list-wrap');
+    if (!wrap) return;
+    if (!orders.length) {
+      wrap.innerHTML = '<div style="text-align:center;color:var(--muted);padding:3rem;">Заказов пока нет</div>';
+      return;
+    }
+
+    wrap.innerHTML = `<div class="orders-list">${orders.map(o => {
+      const items = o.items || [];
+      const itemsRows = items.map(i => `
+        <tr>
+          <td>${i.name||'—'}</td>
+          <td style="color:var(--muted)">${i.boxes ? i.boxes+' кор.' : '—'}</td>
+          <td style="color:var(--muted)">${i.qty ? i.qty+' шт' : '—'}</td>
+          <td style="color:var(--muted)">${i.price ? i.price.toLocaleString()+' ₸' : '—'}</td>
+          <td style="text-align:right">${i.discount ? '−'+i.discount+'%' : '—'}</td>
+          <td style="text-align:right;color:var(--gold)">${i.total ? i.total.toLocaleString()+' ₸' : '—'}</td>
+        </tr>`).join('');
+
+      return `
+        <div class="order-card" id="order-card-${o.id}">
+          <div class="order-card-head" onclick="toggleOrder(${o.id})">
+            <div class="order-num">#${o.id}</div>
+            <div class="order-client">
+              <div class="order-client-name">${o.name||''} ${o.surname||''}</div>
+              <div class="order-client-phone">${o.phone||'—'}</div>
+            </div>
+            <div class="order-city">${o.city||'—'}</div>
+            <span class="badge ${statusBadgeClass(o.status)}">${statusLabel(o.status)}</span>
+            <div class="order-amount">${o.total.toLocaleString()} ₸</div>
+            <div class="order-date">${fmtDt(o.created_at)}</div>
+            <div class="order-chevron">▾</div>
+          </div>
+          <div class="order-detail" id="order-detail-${o.id}">
+            <div class="order-detail-grid">
+              <div>
+                <div class="order-detail-section-title">Клиент</div>
+                <div class="order-detail-val">
+                  ${o.name||''} ${o.surname||''}<br>
+                  ${o.phone ? '📞 '+o.phone : ''}${o.phone && o.email ? '<br>' : ''}
+                  ${o.email ? '✉ '+o.email : ''}
+                  ${o.city ? '<br>'+o.city : ''}
+                </div>
+              </div>
+              <div>
+                <div class="order-detail-section-title">Доставка и оплата</div>
+                <div class="order-detail-val">
+                  ${o.address ? o.address : '<span style="color:var(--muted)">Адрес не указан</span>'}<br>
+                  <span style="color:var(--muted)">Оплата: ${o.payment||'—'}</span>
+                  ${o.comment ? '<br><span style="color:var(--muted)">Комментарий: </span>'+o.comment : ''}
+                </div>
+              </div>
+            </div>
+
+            <div class="order-detail-section-title">Состав заказа</div>
+            ${items.length ? `
+              <table class="order-items-table">
+                <thead><tr>
+                  <th>Товар</th><th>Кор.</th><th>Шт</th><th>Цена/шт</th><th>Скидка</th><th style="text-align:right">Итого</th>
+                </tr></thead>
+                <tbody>${itemsRows}</tbody>
+                <tfoot><tr>
+                  <td colspan="5" style="text-align:right;font-size:11px;color:var(--muted);padding-top:8px;">Итого:</td>
+                  <td style="text-align:right;font-family:'Cormorant Garamond',serif;font-size:18px;color:var(--gold);padding-top:8px;">${o.total.toLocaleString()} ₸</td>
+                </tr></tfoot>
+              </table>` : '<div style="font-size:12px;color:var(--muted)">Состав не указан</div>'}
+
+            <div class="order-status-row">
+              <span class="order-status-label">Статус:</span>
+              <select class="order-status-select" id="status-select-${o.id}">
+                <option value="new"  ${o.status==='new'  ?'selected':''}>Новый</option>
+                <option value="paid" ${o.status==='paid' ?'selected':''}>Оплачен</option>
+                <option value="done" ${o.status==='done' ?'selected':''}>Выполнен</option>
+              </select>
+              <button class="order-status-btn" onclick="saveOrderStatus(${o.id})">Сохранить</button>
+              <button class="action-btn" onclick="downloadAdminInvoice(${o.id})" style="margin-left:auto;">↓ Накладная PDF</button>
+            </div>
+          </div>
+        </div>`;
+    }).join('')}</div>`;
+  }
+
+  function toggleOrder(id) {
+    const head   = document.querySelector(`#order-card-${id} .order-card-head`);
+    const detail = document.getElementById(`order-detail-${id}`);
+    const isOpen = detail.classList.contains('open');
+    // Close all others
+    document.querySelectorAll('.order-detail.open').forEach(d => d.classList.remove('open'));
+    document.querySelectorAll('.order-card-head.open').forEach(h => h.classList.remove('open'));
+    if (!isOpen) { detail.classList.add('open'); head.classList.add('open'); }
+  }
+
+  async function downloadAdminInvoice(id) {
+    try {
+      const res = await fetch(`/api/orders/${id}/invoice`, { headers: authHeaders() });
+      if (!res.ok) { alert('Ошибка генерации накладной'); return; }
+      const blob = await res.blob();
+      const url  = URL.createObjectURL(blob);
+      const a    = document.createElement('a');
+      a.href = url; a.download = `bonita-invoice-${id}.pdf`; a.click();
+      URL.revokeObjectURL(url);
+    } catch(e) { alert('Ошибка: ' + e.message); }
+  }
+
+  async function saveOrderStatus(id) {
+    const select = document.getElementById(`status-select-${id}`);
+    const status = select.value;
+    try {
+      const res = await fetch(`/api/orders/${id}/status`, {
+        method: 'PATCH',
+        headers: authHeaders(),
+        body: JSON.stringify({ status })
+      });
+      if (res.ok) loadDashboard();
+      else alert('Ошибка сохранения');
+    } catch(e) { alert('Ошибка: '+e.message); }
+  }
+
+  function renderClientsTable(clients) {
+    const page = document.getElementById('page-clients');
+    const tbody = page.querySelector('tbody');
+    if (!clients.length) {
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:2rem;">Клиентов пока нет</td></tr>';
+      return;
+    }
+    tbody.innerHTML = clients.map(c => `
+      <tr>
+        <td>${c.name} ${c.surname||''}</td>
+        <td>${c.email||c.phone||'—'}</td>
+        <td>${c.city||'—'}</td>
+        <td>0</td>
+        <td>0 ₸</td>
+        <td>${new Date(c.created_at).toLocaleDateString('ru')}</td>
+        <td><button class="action-btn danger" onclick="deleteClient(${c.id}, '${(c.name+' '+(c.surname||'')).trim()}', this)">Удалить</button></td>
+      </tr>
+    `).join('');
+  }
+
+  async function deleteClient(id, name, btn) {
+    if (!confirm('Удалить клиента "' + name + '"?')) return;
+    try {
+      const res = await fetch('/api/clients/' + id, { method: 'DELETE', headers: authHeaders() });
+      if (res.ok) {
+        btn.closest('tr').remove();
+      } else {
+        const data = await res.json();
+        alert('Ошибка: ' + data.error);
+      }
+    } catch(e) {
+      alert('Ошибка: ' + e.message);
+    }
+  }
+
+  function showPage(name, el) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById('page-' + name).classList.add('active');
+    if (el) el.classList.add('active');
+    const titles = {dashboard:'Обзор',products:'Товары',orders:'Заказы',clients:'Клиенты',settings:'Настройки',banners:'Баннеры'};
+    document.getElementById('page-title').textContent = titles[name]||name;
+    const btn = document.getElementById('topbar-action');
+    if (name==='products') { btn.textContent='+ Добавить товар'; btn.style.display=''; }
+    else btn.style.display='none';
+    if (name==='orders'||name==='clients') loadDashboard();
+    if (name==='banners') { loadBannerSettings(); loadBanners(); }
+  }
+
+  // ── BANNERS ──
+  async function loadBannerSettings() {
+    try {
+      const res  = await fetch('/api/banners/settings');
+      const data = await res.json();
+      document.getElementById('banner-interval').value = data.interval ?? 3;
+    } catch(e) {}
+  }
+
+  async function saveBannerSettings() {
+    const interval = document.getElementById('banner-interval').value;
+    const status   = document.getElementById('banner-settings-status');
+    try {
+      const res  = await fetch('/api/banners/settings', {
+        method: 'POST', headers: authHeaders(),
+        body: JSON.stringify({ interval: Number(interval) })
+      });
+      const data = await res.json();
+      status.textContent = res.ok ? '✓ Сохранено' : (data.error || 'Ошибка');
+      setTimeout(() => status.textContent = '', 2500);
+    } catch(e) { status.textContent = 'Ошибка'; }
+  }
+
+  async function loadBanners() {
+    const grid = document.getElementById('banners-grid');
+    grid.innerHTML = '<div class="banner-empty">Загрузка...</div>';
+    try {
+      const res     = await fetch('/api/banners');
+      const banners = await res.json();
+      if (!banners.length) { grid.innerHTML = '<div class="banner-empty">Фотографий пока нет</div>'; return; }
+      grid.innerHTML = banners.map(b => `
+        <div class="banner-thumb" id="thumb-${b.filename}">
+          <img src="${b.url}" alt="${b.filename}" loading="lazy">
+          <div class="banner-thumb-overlay">
+            <button class="banner-delete-btn" onclick="deleteBanner('${b.filename}')">× Удалить</button>
+          </div>
+        </div>`).join('');
+    } catch(e) { grid.innerHTML = '<div class="banner-empty">Ошибка загрузки</div>'; }
+  }
+
+  async function uploadBanners(files) {
+    const status = document.getElementById('banner-upload-status');
+    status.textContent = `Загрузка ${files.length} фото...`;
+    let ok = 0;
+    for (const file of files) {
+      const fd = new FormData();
+      fd.append('photo', file);
+      try {
+        const res = await fetch('/api/banners', { method: 'POST', headers: { 'Authorization': 'Bearer ' + adminToken }, body: fd });
+        if (res.ok) ok++;
+      } catch(e) {}
+    }
+    status.textContent = `Загружено: ${ok} из ${files.length}`;
+    document.getElementById('banner-file-input').value = '';
+    loadBanners();
+    setTimeout(() => status.textContent = '', 3000);
+  }
+
+  async function deleteBanner(filename) {
+    if (!confirm('Удалить фото?')) return;
+    try {
+      const res = await fetch(`/api/banners/${filename}`, { method: 'DELETE', headers: authHeaders() });
+      if (res.ok) document.getElementById(`thumb-${filename}`)?.remove();
+      else alert('Ошибка удаления');
+      const grid = document.getElementById('banners-grid');
+      if (!grid.children.length) grid.innerHTML = '<div class="banner-empty">Фотографий пока нет</div>';
+    } catch(e) { alert('Ошибка: ' + e.message); }
+  }
+
+  function topbarAction() {
+    document.getElementById('modal-product-title').textContent = 'Добавить товар';
+    document.getElementById('p-name').value='';
+    document.getElementById('p-price').value='';
+    document.getElementById('p-desc').value='';
+    document.getElementById('p-active').checked=true;
+    document.getElementById('p-editing-id').value='';
+    document.getElementById('discounts-list').innerHTML=`<div class="form-row3 discount-row-input" style="margin-bottom:8px;"><input type="number" class="form-input" placeholder="Коробок от"><input type="number" class="form-input" placeholder="Скидка %"><button type="button" class="action-btn danger" onclick="this.closest('.discount-row-input').remove()">✕</button></div>`;
+    document.getElementById('modal-product').classList.add('open');
+  }
+
+  function closeModal() {
+    document.querySelectorAll('.modal-overlay').forEach(m=>m.classList.remove('open'));
+  }
+
+  function addDiscountRow() {
+    const div = document.createElement('div');
+    div.className='form-row3 discount-row-input';
+    div.style.marginBottom='8px';
+    div.innerHTML=`<input type="number" class="form-input" placeholder="Коробок от"><input type="number" class="form-input" placeholder="Скидка %"><button type="button" class="action-btn danger" onclick="this.closest('.discount-row-input').remove()">✕</button>`;
+    document.getElementById('discounts-list').appendChild(div);
+  }
+
+  function togglePackType() {
+    const type = document.getElementById('p-type').value;
+    document.getElementById('pack-box-fields').style.display = type==='box'?'block':'none';
+  }
+
+  async function saveProduct() {
+    const name = document.getElementById('p-name').value.trim();
+    if (!name) { alert('Введите название товара'); return; }
+    
+    const discountRows = document.querySelectorAll('.discount-row-input');
+    const discounts = [];
+    discountRows.forEach(row => {
+      const inputs = row.querySelectorAll('input');
+      if (inputs[0].value && inputs[1].value) {
+        discounts.push({from: +inputs[0].value, percent: +inputs[1].value});
+      }
+    });
+
+    const product = {
+      name,
+      brand: document.getElementById('p-brand').value,
+      category: document.getElementById('p-category').value,
+      description: document.getElementById('p-desc').value,
+      price: +document.getElementById('p-price').value,
+      pack_type: document.getElementById('p-type').value,
+      pack_qty: +document.getElementById('p-qty').value||1,
+      discounts,
+      active: document.getElementById('p-active').checked ? 1 : 0
+    };
+
+    const editingId = document.getElementById('p-editing-id').value;
+    const url = editingId ? '/api/products/'+editingId : '/api/products';
+    const method = editingId ? 'PUT' : 'POST';
+
+    try {
+      const res = await fetch(url, {method, headers: authHeaders(), body: JSON.stringify(product)});
+      const data = await res.json();
+      if (res.ok) {
+        closeModal();
+        loadProducts();
+      } else {
+        alert('Ошибка: ' + data.error);
+      }
+    } catch(e) {
+      alert('Ошибка подключения');
+    }
+  }
+</script>
+</body>
