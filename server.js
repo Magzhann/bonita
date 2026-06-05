@@ -535,7 +535,7 @@ function userAuth(req, res, next) {
 }
 
 // ── START ──
-app.listen(PORT, '0.0.0.0', () => {
+app.listen(process.env.PORT || PORT, '0.0.0.0', () => {
   console.log(`Сервер запущен: http://localhost:${PORT}`);
   console.log(`Админ пароль: bonita_admin_2026`);
 });
