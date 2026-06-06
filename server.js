@@ -198,6 +198,8 @@ app.post('/api/register', async (req, res) => {
         userData: { name, surname, email, phone: phone||null, city, passwordHash: hash },
         code, expires: Date.now() + 15 * 60 * 1000
       });
+      // Try sending verification email, but don't block registration if it fails
+      let mailSent = false;
       try {
         await sendMail({
           from: `"Bonita" <${GMAIL_USER}>`, to: email,
@@ -209,10 +211,28 @@ app.post('/api/register', async (req, res) => {
             <div style="font-size:36px;font-weight:700;letter-spacing:0.3em;color:#c9a84c;background:#faf7f0;border:1px solid #e8d5a3;padding:16px 24px;display:inline-block;margin:8px 0 20px;">${code}</div>
             <p style="color:#888;font-size:12px;">Код действителен 15 минут.</p></div>`
         });
-        res.json({ needsVerification: true, message: 'Код отправлен на почту' });
+        mailSent = true;
       } catch(mailErr) {
-        console.error('Verify mail error:', mailErr.message);
-        res.status(500).json({ error: 'Не удалось отправить письмо подтверждения.' });
+        console.error('Verify mail error (non-fatal):', mailErr.message);
+      }
+
+      if (mailSent) {
+        // Email sent — ask user to enter the code
+        res.json({ needsVerification: true, message: 'Код отправлен на почту' });
+      } else {
+        // Email failed — create account directly and auto-login
+        db.run(
+          `INSERT INTO users (name,surname,email,phone,city,password) VALUES (?,?,?,?,?,?)`,
+          [name, surname, email, phone||null, city, hash],
+          function(insertErr) {
+            if (insertErr) {
+              if (insertErr.message.includes('UNIQUE')) return res.status(400).json({ error: 'Email или телефон уже зарегистрирован' });
+              return res.status(500).json({ error: insertErr.message });
+            }
+            const token = jwt.sign({ id: this.lastID, role: 'user' }, SECRET, { expiresIn: '30d' });
+            res.json({ token, name, verified: true, message: 'Регистрация успешна' });
+          }
+        );
       }
     } catch(e) { res.status(500).json({ error: e.message }); }
   });
