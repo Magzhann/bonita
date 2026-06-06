@@ -1115,21 +1115,17 @@
     </div>
 
     <div id="form-login">
-      <form id="login-form" onsubmit="apiLogin(); return false;" novalidate>
-        <div class="form-group">
-          <label class="form-label" data-ru="Email или телефон" data-kz="Email немесе телефон">Email или телефон</label>
-          <input type="text" class="form-input" id="login-identifier"
-            autocomplete="username" inputmode="email" autocapitalize="off" autocorrect="off" />
-        </div>
-        <div class="form-group">
-          <label class="form-label" data-ru="Пароль" data-kz="Құпия сөз">Пароль</label>
-          <input type="password" class="form-input" id="login-password"
-            autocomplete="current-password" />
-        </div>
-        <div class="form-forgot" onclick="showForgotStep1()" data-ru="Забыли пароль?" data-kz="Құпия сөзді ұмыттыңыз ба?">Забыли пароль?</div>
-        <div id="login-error" style="color:#c94c4c;font-size:12px;margin-bottom:0.5rem;display:none;"></div>
-        <button type="submit" class="form-submit" data-ru="Войти" data-kz="Кіру">Войти</button>
-      </form>
+      <div class="form-group">
+        <label class="form-label" data-ru="Email или телефон" data-kz="Email немесе телефон">Email или телефон</label>
+        <input type="text" class="form-input" id="login-identifier" autocomplete="username" inputmode="email" />
+      </div>
+      <div class="form-group">
+        <label class="form-label" data-ru="Пароль" data-kz="Құпия сөз">Пароль</label>
+        <input type="password" class="form-input" id="login-password" autocomplete="current-password" />
+      </div>
+      <div class="form-forgot" onclick="showForgotStep1()" data-ru="Забыли пароль?" data-kz="Құпия сөзді ұмыттыңыз ба?">Забыли пароль?</div>
+      <div id="login-error" style="color:#c94c4c;font-size:12px;margin-bottom:0.5rem;display:none;"></div>
+      <button class="form-submit" onclick="apiLogin()" data-ru="Войти" data-kz="Кіру">Войти</button>
     </div>
 
     <!-- Forgot password: step 1 — enter email -->
@@ -1166,42 +1162,34 @@
     </div>
 
     <div id="form-register" style="display:none">
-      <form id="register-form" onsubmit="apiRegister(); return false;" novalidate>
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label" data-ru="Имя" data-kz="Аты">Имя</label>
-            <input type="text" class="form-input" id="reg-name"
-              autocomplete="given-name" autocapitalize="words" />
-          </div>
-          <div class="form-group">
-            <label class="form-label" data-ru="Фамилия" data-kz="Тегі">Фамилия</label>
-            <input type="text" class="form-input" id="reg-surname"
-              autocomplete="family-name" autocapitalize="words" />
-          </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" data-ru="Имя" data-kz="Аты">Имя</label>
+          <input type="text" class="form-input" id="reg-name" autocomplete="given-name" />
         </div>
         <div class="form-group">
-          <label class="form-label" data-ru="Email" data-kz="Email">Email</label>
-          <input type="email" class="form-input" id="reg-email"
-            autocomplete="email" inputmode="email" autocapitalize="off" autocorrect="off" />
+          <label class="form-label" data-ru="Фамилия" data-kz="Тегі">Фамилия</label>
+          <input type="text" class="form-input" id="reg-surname" autocomplete="family-name" />
         </div>
-        <div class="form-group">
-          <label class="form-label" data-ru="Телефон" data-kz="Телефон">Телефон</label>
-          <input type="tel" class="form-input" id="reg-phone"
-            placeholder="+7" autocomplete="tel" inputmode="tel" />
-        </div>
-        <div class="form-group">
-          <label class="form-label" data-ru="Город" data-kz="Қала">Город</label>
-          <input type="text" class="form-input" id="reg-city"
-            autocomplete="address-level2" autocapitalize="words" />
-        </div>
-        <div class="form-group">
-          <label class="form-label" data-ru="Пароль" data-kz="Құпия сөз">Пароль</label>
-          <input type="password" class="form-input" id="reg-password"
-            autocomplete="new-password" />
-        </div>
-        <div id="reg-error" style="color:#c94c4c;font-size:12px;margin-bottom:0.5rem;display:none;"></div>
-        <button type="submit" class="form-submit" data-ru="Зарегистрироваться" data-kz="Тіркелу">Зарегистрироваться</button>
-      </form>
+      </div>
+      <div class="form-group">
+        <label class="form-label" data-ru="Email" data-kz="Email">Email</label>
+        <input type="email" class="form-input" id="reg-email" autocomplete="email" inputmode="email" />
+      </div>
+      <div class="form-group">
+        <label class="form-label" data-ru="Телефон" data-kz="Телефон">Телефон</label>
+        <input type="tel" class="form-input" id="reg-phone" placeholder="+7" inputmode="tel" />
+      </div>
+      <div class="form-group">
+        <label class="form-label" data-ru="Город" data-kz="Қала">Город</label>
+        <input type="text" class="form-input" id="reg-city" />
+      </div>
+      <div class="form-group">
+        <label class="form-label" data-ru="Пароль" data-kz="Құпия сөз">Пароль</label>
+        <input type="password" class="form-input" id="reg-password" autocomplete="new-password" />
+      </div>
+      <div id="reg-error" style="color:#c94c4c;font-size:12px;margin-bottom:0.5rem;display:none;"></div>
+      <button class="form-submit" onclick="apiRegister()" data-ru="Зарегистрироваться" data-kz="Тіркелу">Зарегистрироваться</button>
     </div>
 
     <!-- Email verification step -->
@@ -1306,6 +1294,14 @@
 </div>
 
 <script>
+  // ── GLOBAL ERROR CATCHERS ──
+  window.addEventListener('error', e => {
+    console.error('[JS ERROR]', e.message, 'at', e.filename, e.lineno);
+  });
+  window.addEventListener('unhandledrejection', e => {
+    console.error('[UNHANDLED PROMISE]', e.reason);
+  });
+
   let currentLang = 'ru';
 
   const translations = {
@@ -1874,6 +1870,7 @@
   let _pendingVerifyEmail = '';
 
   async function apiRegister() {
+    console.log('[REG] apiRegister called');
     const name     = document.getElementById('reg-name').value.trim();
     const surname  = document.getElementById('reg-surname').value.trim();
     const email    = document.getElementById('reg-email').value.trim();
@@ -1881,28 +1878,35 @@
     const city     = document.getElementById('reg-city').value.trim();
     const password = document.getElementById('reg-password').value;
     const errEl    = document.getElementById('reg-error');
+    console.log('[REG] fields:', { name, surname, email, phone, city, hasPassword: !!password });
     errEl.style.display = 'none';
 
     if (!name || !password || (!email && !phone)) {
+      console.log('[REG] validation failed');
       errEl.textContent = 'Заполните имя, пароль и email или телефон';
       errEl.style.display = 'block';
       return;
     }
 
     try {
+      console.log('[REG] sending fetch to /api/register');
       const res  = await fetch('/api/register', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({name, surname, email: email||null, phone: phone||null, city, password})
       });
+      console.log('[REG] response status:', res.status, res.ok);
       const data = await res.json();
+      console.log('[REG] response data:', data);
       if (res.ok) {
         if (data.verified) {
+          console.log('[REG] auto-login (phone-only)');
           localStorage.setItem('userToken', data.token);
           localStorage.setItem('userName', data.name);
           closeModal();
           setAuthUI(data.name);
         } else {
+          console.log('[REG] showing verify step for email:', email);
           _pendingVerifyEmail = email;
           document.getElementById('form-register').style.display = 'none';
           document.getElementById('modal-tabs').style.display    = 'none';
@@ -1914,11 +1918,13 @@
             `Код подтверждения отправлен на ${email}. Проверьте почту (и папку «Спам»).`;
         }
       } else {
+        console.log('[REG] server error:', data.error);
         errEl.textContent = data.error || 'Ошибка регистрации';
         errEl.style.display = 'block';
       }
     } catch(e) {
-      errEl.textContent = 'Нет связи с сервером';
+      console.error('[REG] fetch error:', e.message, e);
+      errEl.textContent = 'Нет связи с сервером: ' + e.message;
       errEl.style.display = 'block';
     }
   }
