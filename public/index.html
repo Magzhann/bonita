@@ -389,8 +389,12 @@
       font-family: 'Noto Sans', sans-serif; font-size: 11px;
       font-weight: 500; letter-spacing: 0.15em; text-transform: uppercase;
       border: none; cursor: pointer; transition: background 0.3s;
+      touch-action: manipulation; /* eliminates 300ms tap delay on mobile */
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
     }
     .form-submit:hover { background: var(--gold2); }
+    .form-submit:active { background: var(--gold3); }
     .form-forgot { font-size: 11px; color: var(--muted); text-align: right; margin-top: 0.5rem; cursor: pointer; }
     .form-forgot:hover { color: var(--gold); }
 
@@ -1111,17 +1115,21 @@
     </div>
 
     <div id="form-login">
-      <div class="form-group">
-        <label class="form-label" data-ru="Email или телефон" data-kz="Email немесе телефон">Email или телефон</label>
-        <input type="text" class="form-input" id="login-identifier" />
-      </div>
-      <div class="form-group">
-        <label class="form-label" data-ru="Пароль" data-kz="Құпия сөз">Пароль</label>
-        <input type="password" class="form-input" id="login-password" />
-      </div>
-      <div class="form-forgot" onclick="showForgotStep1()" data-ru="Забыли пароль?" data-kz="Құпия сөзді ұмыттыңыз ба?">Забыли пароль?</div>
-      <div id="login-error" style="color:#c94c4c;font-size:12px;margin-bottom:0.5rem;display:none;"></div>
-      <button class="form-submit" onclick="apiLogin()" data-ru="Войти" data-kz="Кіру">Войти</button>
+      <form id="login-form" onsubmit="apiLogin(); return false;" novalidate>
+        <div class="form-group">
+          <label class="form-label" data-ru="Email или телефон" data-kz="Email немесе телефон">Email или телефон</label>
+          <input type="text" class="form-input" id="login-identifier"
+            autocomplete="username" inputmode="email" autocapitalize="off" autocorrect="off" />
+        </div>
+        <div class="form-group">
+          <label class="form-label" data-ru="Пароль" data-kz="Құпия сөз">Пароль</label>
+          <input type="password" class="form-input" id="login-password"
+            autocomplete="current-password" />
+        </div>
+        <div class="form-forgot" onclick="showForgotStep1()" data-ru="Забыли пароль?" data-kz="Құпия сөзді ұмыттыңыз ба?">Забыли пароль?</div>
+        <div id="login-error" style="color:#c94c4c;font-size:12px;margin-bottom:0.5rem;display:none;"></div>
+        <button type="submit" class="form-submit" data-ru="Войти" data-kz="Кіру">Войти</button>
+      </form>
     </div>
 
     <!-- Forgot password: step 1 — enter email -->
@@ -1158,34 +1166,42 @@
     </div>
 
     <div id="form-register" style="display:none">
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label" data-ru="Имя" data-kz="Аты">Имя</label>
-          <input type="text" class="form-input" id="reg-name" />
+      <form id="register-form" onsubmit="apiRegister(); return false;" novalidate>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" data-ru="Имя" data-kz="Аты">Имя</label>
+            <input type="text" class="form-input" id="reg-name"
+              autocomplete="given-name" autocapitalize="words" />
+          </div>
+          <div class="form-group">
+            <label class="form-label" data-ru="Фамилия" data-kz="Тегі">Фамилия</label>
+            <input type="text" class="form-input" id="reg-surname"
+              autocomplete="family-name" autocapitalize="words" />
+          </div>
         </div>
         <div class="form-group">
-          <label class="form-label" data-ru="Фамилия" data-kz="Тегі">Фамилия</label>
-          <input type="text" class="form-input" id="reg-surname" />
+          <label class="form-label" data-ru="Email" data-kz="Email">Email</label>
+          <input type="email" class="form-input" id="reg-email"
+            autocomplete="email" inputmode="email" autocapitalize="off" autocorrect="off" />
         </div>
-      </div>
-      <div class="form-group">
-        <label class="form-label" data-ru="Email" data-kz="Email">Email</label>
-        <input type="email" class="form-input" id="reg-email" />
-      </div>
-      <div class="form-group">
-        <label class="form-label" data-ru="Телефон" data-kz="Телефон">Телефон</label>
-        <input type="tel" class="form-input" id="reg-phone" placeholder="+7" />
-      </div>
-      <div class="form-group">
-        <label class="form-label" data-ru="Город" data-kz="Қала">Город</label>
-        <input type="text" class="form-input" id="reg-city" />
-      </div>
-      <div class="form-group">
-        <label class="form-label" data-ru="Пароль" data-kz="Құпия сөз">Пароль</label>
-        <input type="password" class="form-input" id="reg-password" />
-      </div>
-      <div id="reg-error" style="color:#c94c4c;font-size:12px;margin-bottom:0.5rem;display:none;"></div>
-      <button class="form-submit" onclick="apiRegister()" data-ru="Зарегистрироваться" data-kz="Тіркелу">Зарегистрироваться</button>
+        <div class="form-group">
+          <label class="form-label" data-ru="Телефон" data-kz="Телефон">Телефон</label>
+          <input type="tel" class="form-input" id="reg-phone"
+            placeholder="+7" autocomplete="tel" inputmode="tel" />
+        </div>
+        <div class="form-group">
+          <label class="form-label" data-ru="Город" data-kz="Қала">Город</label>
+          <input type="text" class="form-input" id="reg-city"
+            autocomplete="address-level2" autocapitalize="words" />
+        </div>
+        <div class="form-group">
+          <label class="form-label" data-ru="Пароль" data-kz="Құпия сөз">Пароль</label>
+          <input type="password" class="form-input" id="reg-password"
+            autocomplete="new-password" />
+        </div>
+        <div id="reg-error" style="color:#c94c4c;font-size:12px;margin-bottom:0.5rem;display:none;"></div>
+        <button type="submit" class="form-submit" data-ru="Зарегистрироваться" data-kz="Тіркелу">Зарегистрироваться</button>
+      </form>
     </div>
 
     <!-- Email verification step -->
