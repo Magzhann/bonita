@@ -1758,7 +1758,7 @@
         body.innerHTML = '<div class="account-empty">У вас пока нет заказов</div>';
         return;
       }
-      const statusMap = { new: 'Новый', paid: 'Оплачен', done: 'Выполнен' };
+      const statusMap  = { new: 'Новый', paid: 'Оплачен', done: 'Выполнен' };
       const statusClass = { new: 'new', paid: 'paid', done: 'done' };
       body.innerHTML = orders.map(o => {
         const items = (o.items || []).map(i => `
@@ -1766,14 +1766,17 @@
             <span>${i.name}</span>
             <span>${i.boxes ? i.boxes + ' кор.' : ''} ${i.qty ? '/ ' + i.qty + ' шт' : ''} — ${(i.total || 0).toLocaleString()} ₸</span>
           </div>`).join('');
-        const cls = statusClass[o.status] || 'done';
-        const label = statusMap[o.status] || o.status;
+        const cls   = statusClass[o.status] || 'done';
+        const label = statusMap[o.status]   || o.status;
+        const d  = new Date(o.created_at);
+        const dt = d.toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit',year:'numeric'})
+                 + ' в ' + d.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
         return `
           <div class="order-card">
             <div class="order-card-head">
               <div>
                 <div class="order-num">Заказ #${o.id}</div>
-                <div class="order-meta">${(() => { const d = new Date(o.created_at); return d.toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit',year:'numeric'}) + ' в ' + d.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}); })()} · ${o.payment || '—'}</div>
+                <div class="order-meta">${dt} · ${o.payment || '—'}</div>
               </div>
               <span class="order-status ${cls}">${label}</span>
               <div class="order-total">${(o.total || 0).toLocaleString()} ₸</div>
@@ -1801,13 +1804,9 @@
       const blob = await res.blob();
       const url  = URL.createObjectURL(blob);
       const a    = document.createElement('a');
-      a.href     = url;
-      a.download = `bonita-invoice-${orderId}.pdf`;
-      a.click();
+      a.href = url; a.download = `bonita-invoice-${orderId}.pdf`; a.click();
       URL.revokeObjectURL(url);
-    } catch(e) {
-      alert('Ошибка: ' + e.message);
-    }
+    } catch(e) { alert('Ошибка: ' + e.message); }
   }
 
   // ── AUTH UI ──
@@ -1817,15 +1816,10 @@
     document.getElementById('user-menu-name').textContent = name;
     wrap.classList.add('visible');
     document.getElementById('btn-cart').classList.add('visible');
-    // Mobile menu: hide login link, show user section
     const mobileLogin = document.getElementById('mobile-login-link');
     const mobileUser  = document.getElementById('mobile-user-section');
     if (mobileLogin) mobileLogin.style.display = 'none';
     if (mobileUser)  mobileUser.style.display = 'block';
-    document.querySelectorAll('.btn-add[data-product-id]').forEach(b => {
-      b.textContent = 'В корзину';
-      b.removeAttribute('onclick');
-    });
   }
 
   function toggleUserMenu() {
@@ -1843,7 +1837,6 @@
     location.reload();
   }
 
-  // Close dropdown when clicking outside
   document.addEventListener('click', e => {
     const wrap = document.getElementById('user-menu-wrap');
     if (wrap && !wrap.contains(e.target)) closeUserMenu();
@@ -1864,63 +1857,20 @@
     document.body.style.overflow = '';
   }
 
-  // Close mobile menu on resize to desktop
   window.addEventListener('resize', () => {
     if (window.innerWidth > 900) closeMobileMenu();
   });
 
-  // Check existing session and restore cart on load
+  // ── SESSION RESTORE ──
   window.addEventListener('DOMContentLoaded', () => {
     const token = localStorage.getItem('userToken');
-    const name = localStorage.getItem('userName');
+    const name  = localStorage.getItem('userName');
     if (token && name) setAuthUI(name);
     loadCart();
     if (cart.length) updateCartCount();
   });
 
-  async function apiLogin() {
-    const login = document.getElementById('login-identifier').value.trim();
-    const password = document.getElementById('login-password').value;
-    const errEl = document.getElementById('login-error');
-    errEl.style.display = 'none';
-
-    if (!login || !password) {
-      errEl.textContent = 'Заполните все поля';
-      errEl.style.display = 'block';
-      return;
-    }
-
-    try {
-      const res = await fetch('/api/login', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({login, password})
-      });
-      const data = await res.json();
-      if (res.ok) {
-        localStorage.setItem('userToken', data.token);
-        localStorage.setItem('userName', data.name);
-        closeModal();
-        setAuthUI(data.name);
-        // Re-render product buttons to show "В корзину"
-        document.querySelectorAll('.btn-add[data-product-id]').forEach(btn => {
-          const pid = +btn.getAttribute('data-product-id');
-          const product = allProducts[pid];
-          if (product && product.active) {
-            btn.textContent = 'В корзину';
-            btn.onclick = null;
-          }
-        });
-      } else {
-        errEl.textContent = data.error || 'Ошибка входа';
-        errEl.style.display = 'block';
-      }
-    } catch(e) {
-      errEl.textContent = 'Нет связи с сервером';
-      errEl.style.display = 'block';
-    }
-  }
-
+  // ── REGISTRATION ──
   let _pendingVerifyEmail = '';
 
   async function apiRegister() {
@@ -1948,13 +1898,11 @@
       const data = await res.json();
       if (res.ok) {
         if (data.verified) {
-          // Phone-only: account created, auto-login
           localStorage.setItem('userToken', data.token);
           localStorage.setItem('userName', data.name);
           closeModal();
           setAuthUI(data.name);
         } else {
-          // Email verification required
           _pendingVerifyEmail = email;
           document.getElementById('form-register').style.display = 'none';
           document.getElementById('modal-tabs').style.display    = 'none';
@@ -1976,16 +1924,14 @@
   }
 
   async function apiVerifyEmail() {
-    const code   = document.getElementById('verify-code').value.trim();
-    const errEl  = document.getElementById('verify-error');
+    const code  = document.getElementById('verify-code').value.trim();
+    const errEl = document.getElementById('verify-error');
     errEl.style.display = 'none';
-
     if (code.length !== 4) {
       errEl.textContent = 'Введите 4-значный код';
       errEl.style.display = 'block';
       return;
     }
-
     try {
       const res  = await fetch('/api/verify-email', {
         method: 'POST',
@@ -2010,7 +1956,7 @@
 </script>
 
 <script>
-  let allProducts = {}; // id → product, for cart lookups
+  let allProducts = {};
 
   async function loadProducts() {
     try {
@@ -2018,17 +1964,13 @@
       const products = await res.json();
       products.forEach(p => allProducts[p.id] = p);
       renderProducts(products);
-    } catch (e) {
-      console.error('Ошибка загрузки товаров:', e);
-    }
+    } catch(e) { console.error('Ошибка загрузки товаров:', e); }
   }
 
   function renderProducts(products) {
     const grid = document.querySelector('.products-grid');
     if (!products.length) return;
     const loggedIn = !!localStorage.getItem('userToken');
-
-    // Build all HTML at once — never use innerHTML += in a loop
     grid.innerHTML = products.map(p => {
       const discountRows = (p.discounts || []).map(d =>
         `<div class="discount-row"><span>${d.from} коробок (${d.from * p.pack_qty} шт)</span><span>−${d.percent}%</span></div>`
@@ -2060,7 +2002,6 @@
         </div>`;
     }).join('');
 
-    // Attach listeners once, after full grid is in DOM
     grid.querySelectorAll('.btn-add[data-product-id]').forEach(btn => {
       btn.addEventListener('click', () => {
         const product = allProducts[+btn.getAttribute('data-product-id')];
@@ -2087,9 +2028,7 @@
       const banners  = await bannersRes.json();
       const settings = await settingsRes.json();
       const interval = Number(settings.interval ?? 3);
-
-      if (!banners.length) return; // keep gradient background
-
+      if (!banners.length) return;
       const slider = document.getElementById('hero-slider');
       banners.forEach((b, i) => {
         const slide = document.createElement('div');
@@ -2098,10 +2037,7 @@
         slide.innerHTML = '<div class="hero-slide-overlay"></div>';
         slider.appendChild(slide);
       });
-
-      // interval === 0 or only one photo: show first, no rotation
       if (interval === 0 || banners.length < 2) return;
-
       let current = 0;
       setInterval(() => {
         const slides = slider.querySelectorAll('.hero-slide');
@@ -2109,7 +2045,7 @@
         current = (current + 1) % slides.length;
         slides[current].classList.add('active');
       }, interval * 1000);
-    } catch(e) { /* silently keep gradient */ }
+    } catch(e) {}
   }
 </script>
 </body>
